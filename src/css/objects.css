@@ -1,0 +1,17 @@
+.mario {
+    position: absolute;
+    left: 0;
+    right: 0;
+    width: 32px;
+    height: 64px;
+    image-rendering: -moz-crisp-edges;
+    image-rendering: -webkit-crisp-edges;
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+}
+
+.environment {
+    display: flex;
+    position: initial;
+    border: solid #5B6DCD 1px;
+}

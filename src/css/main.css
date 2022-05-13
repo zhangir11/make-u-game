@@ -1,0 +1,20 @@
+.UI {
+    position: relative;
+    width: 900px;
+    height: 540px;
+    box-sizing: content-box;
+}
+
+.UI-parent {
+    border: solid #5B6DCD 10px;
+    height: 540px;
+    border-radius: 10px;
+    display: grid;
+    position: relative;
+    justify-content: center;
+    align-items: center;
+}
+
+body {
+    background-color: aquamarine;
+}
