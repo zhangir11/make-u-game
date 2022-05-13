@@ -1,11 +1,10 @@
-import { Mario, Maps, divka, gravity }
+import {mapTileSize, Mario, Maps, divka, gravity }
 from "./inisialization.js"
 import { isLeftDown, isDownDown, isRightDown, isUpDown }
 from "./control.js"
 let queue = true
 
 const throttle = (f, ms = 0) => {
-        console.log("hehe")
         let TimeNow = Date.now()
         return function() {
             let timee = Date.now()
@@ -40,6 +39,7 @@ let MarioSetSate = throttle(setState, 100)
 
 function cycle() { //цикл анимаций тут нельзя делать вычислений. Пока сырой 
     if (!Mario.Onearth) {
+        setState(Mario, 1, 1)
         divka.Body.style.left = divka.Left + "px"
         Mario.Body.style.left = Mario.Left + "px"
         Mario.Body.style.top = Mario.Top + "px"
@@ -78,13 +78,7 @@ function foreverEver() { //game function
         queue = false
         let thenow = Date.now() //it is t2 or now. Needed for physics 
         let bottomline = collidebottom(Mario) //take bottom limit
-        let backlimit = collideback(Mario)
-        let frontlimit = collidefront(Mario)
-        if (bottomline < 5000) { //if bottom limit is low than 5000 that means there block under Mario
-            Mario.Onearth = true
-        } else {
-            Mario.Onearth = false
-        }
+        let topline = collidetop(Mario)
 
         if ((!Mario.Onearth) || (Mario.vy < 0)) { // calculation for jumping and falling with gravity
             let temp = Mario.vy //initial velocity
@@ -96,10 +90,25 @@ function foreverEver() { //game function
 
         if (Mario.Top >= bottomline) {
             Mario.Top = bottomline
-        } //if Mario gets lower than limit than Mario will return to the limit
+            Mario.Onearth = true
+        } else { //if Mario gets lower than limit than Mario will return to the limit
+            Mario.Onearth = false
+            if (Mario.vy < 0.2 && Mario.vy > 0) {
+                Mario.vy = 0.2
+            }
+        }
+        if (Mario.Top <= topline) {
+            let temp = Maps[Math.trunc((Mario.Left - divka.Left + (Mario.width>>1)) / mapTileSize)]?.[Math.trunc((topline - 1) / mapTileSize)];
+            console.log(temp?.style.content)
+            if (temp && temp.style.content=="url(\"./assets/sprites/environment/bonusactive.png\")") {
+                temp.style.content = "url(./assets/sprites/environment/bonusinactive.png)"
+            }
+            Mario.Top = topline
+            Mario.vy = 0.2
+        }
 
         if (Mario.Onearth && isUpDown) {
-            Mario.vy = -0.5
+            Mario.vy = -0.7
         }
         if (isDownDown) {
 
@@ -108,16 +117,20 @@ function foreverEver() { //game function
                 Mario.Left -= Math.round((thenow - timetoVelocity) * 0.2) //simple physics. distance=dt*v
             }
         } else if (isRightDown) {
-            if (Mario.Left < 436) {
+            //simple physics. distance=dt*v
+
+            if (Mario.Left < 436) {//436 середина экрана. Марио движется до этой линий дальше двигается дивка, в конце опять Марио
                 Mario.Left += Math.round((thenow - timetoVelocity) / 5)
-            } else if (divka.Left + (Maps.length - 25) * 36 > 0) {
+            } else if (divka.Left + (Maps.length - 25) * mapTileSize > 0) {
                 divka.Left -= Math.round((thenow - timetoVelocity) / 5)
-            } else if (Mario.Left < 868) {
+            } else if (Mario.Left < 868) {//900-creature.width
                 Mario.Left += Math.round((thenow - timetoVelocity) / 5)
             }
         }
+        let backlimit = collideback(Mario)
+        let frontlimit = collidefront(Mario)
 
-        //
+        //ОТкатываем внедрение в обьект
         if (Mario.Left < backlimit) {
             Mario.Left = backlimit
         }
@@ -129,72 +142,59 @@ function foreverEver() { //game function
     }
     animateForever(cycle)
 }
+//коллайды возвращает границы Куда может упасть либо передвинется Марио 
+function collidetop(creature) {
+    let fstblocY = Math.trunc((creature.Top) / 36)
 
-// function collidetop(creature) {
-//     let fstblocX = (creature.Left) / 36
-//     let fstblocY = (creature.Top) / 36
-//     let sndblocX = fstblocX + 1
-//     if ((Maps[fstblocX][fstblocY] != undefined) || (Maps[sndblocX][fstblocY] != undefined)) {
-//         creature.Top = fstblocY * 36 + 72
-// console.log("here2")
-// true
-//         return true
-//     }
-//     let sndblocY = fstblocY - 1
-//     if (((Maps[sndblocX][sndblocY] != undefined) || (Maps[sndblocX][sndblocY] != undefined)) && (creature.Top <= sndblocY * 36 + 72)) {
-//         creature.Top = sndblocY * 36 + 72
-//         return true
-//     }
-//     return false
-// }under development
+    let fstblocX = Math.trunc((creature.Left - divka.Left + 1) / mapTileSize)
+    let sndblocX = Math.trunc((creature.Left - divka.Left + creature.width-2) / mapTileSize)
+    for (fstblocY; fstblocY >= 0; fstblocY--) {
+        if ((Maps[fstblocX][fstblocY] != undefined) || (Maps[sndblocX][fstblocY] != undefined)) {
+            return fstblocY * mapTileSize + mapTileSize
+        }
+    }
+    return 0
+} //
 
 function collidefront(creature) {
-    let fstblocX = Math.floor((creature.Left - divka.Left + 32) / 36)
+    let fstblocX = Math.trunc((creature.Left - divka.Left + creature.width-4) / mapTileSize)
 
-    let fstblocY = Math.floor((creature.Top + 63) / 36)
-    let sndblocY = Math.floor((creature.Top + 1) / 36)
-    let thrdblocY = Math.floor((creature.Top + 35) / 36)
-
-    if ((Maps[fstblocX][sndblocY] != undefined) || (Maps[fstblocX][fstblocY] != undefined) || (Maps[fstblocX][thrdblocY] != undefined)) {
-        console.log(fstblocX * 36 + divka.Left - 32, "front")
-        return fstblocX * 36 + divka.Left - 32
+    let fstblocY = Math.trunc((creature.Top + creature.height-1) / mapTileSize)
+    let sndblocY = Math.trunc((creature.Top) / mapTileSize)
+    let thrdblocY = Math.trunc((creature.Top + (creature.height>>1)) / mapTileSize)
+    for (fstblocX; fstblocX < Maps.length; fstblocX++) {
+        if ((Maps[fstblocX][sndblocY] != undefined) || (Maps[fstblocX][fstblocY] != undefined) || (Maps[fstblocX][thrdblocY] != undefined)) {
+            return fstblocX * mapTileSize + divka.Left - creature.width
+        }
     }
-    if (((Maps[fstblocX][fstblocY] != undefined) || (Maps[fstblocX][sndblocY] != undefined) || (Maps[fstblocX][thrdblocY] != undefined)) && (creature.Left + divka.Left - 4 >= fstblocX * 36)) {
-        console.log(fstblocX * 36 + divka.Left - 32, "front")
-        return fstblocX * 36 + divka.Left - 32
-    }
-    return 867
+    return Maps.length*mapTileSize-creature.width
 }
 
 function collideback(creature) {
-    let fstblocX = Math.floor((creature.Left - divka.Left) / 36)
+    let fstblocX = Math.trunc((creature.Left - divka.Left - 1) / mapTileSize)
 
-    let fstblocY = Math.floor((creature.Top + 63) / 36)
-    let sndblocY = Math.floor((creature.Top + 1) / 36)
-    let thrdblocY = Math.floor((creature.Top + 35) / 36)
+    let fstblocY = Math.trunc((creature.Top + creature.height-1) / mapTileSize)
+    let sndblocY = Math.trunc((creature.Top) / mapTileSize)
+    let thrdblocY = Math.trunc((creature.Top + (creature.height>>1)) / mapTileSize)
 
-    if ((Maps[fstblocX][sndblocY] != undefined) || (Maps[fstblocX][fstblocY] != undefined) || (Maps[fstblocX][thrdblocY] != undefined)) {
-        console.log(fstblocX * 36 + divka.Left + 36, "back")
-        return fstblocX * 36 + divka.Left + 36
-    }
-    if (((Maps[fstblocX][fstblocY] != undefined) || (Maps[fstblocX][sndblocY] != undefined) || (Maps[fstblocX][thrdblocY] != undefined)) && (creature.Left + divka.Left <= fstblocX * 36)) {
-        console.log(fstblocX * 36 + divka.Left + 36, "back")
-        return fstblocX * 36 + divka.Left + 36
+    for (fstblocX; fstblocX >= 0; fstblocX--) {
+        if ((Maps[fstblocX][sndblocY] != undefined) || (Maps[fstblocX][fstblocY] != undefined) || (Maps[fstblocX][thrdblocY] != undefined)) {
+            return fstblocX * mapTileSize + divka.Left + mapTileSize
+        }
     }
     return 0
 }
 
 function collidebottom(creature) {
-    let fstblocX = Math.floor((creature.Left - divka.Left) / 36)
-    let sndblocX = Math.floor((creature.Left - divka.Left + 31) / 36)
+    let fstblocX = Math.trunc((creature.Left - divka.Left + 1) / mapTileSize)
+    let sndblocX = Math.trunc((creature.Left - divka.Left + creature.width-2) / mapTileSize)
 
-    let fstblocY = Math.floor((creature.Top + 64) / 36)
-    if ((Maps[fstblocX][fstblocY] != undefined) || (Maps[sndblocX][fstblocY] != undefined)) {
-        return creature.Top = fstblocY * 36 - 64
-    }
-    if (((Maps[sndblocX][fstblocY] != undefined) || (Maps[sndblocX][fstblocY] != undefined)) && (creature.Top + 28 >= fstblocY * 36)) {
-        return creature.Top = fstblocY * 36 - 64
-    }
-    return 5000
+    let fstblocY = Math.trunc((creature.Top + creature.height+1) / mapTileSize)
+    for (fstblocY; fstblocY < Maps[0].length; fstblocY++)
+        if ((Maps[fstblocX][fstblocY] != undefined) || (Maps[sndblocX][fstblocY] != undefined)) {
+            return fstblocY * mapTileSize - creature.height
+        }
+    return Maps[0].length*mapTileSize
 }
+
 addEventListener('load', () => setInterval(foreverEver, 8))

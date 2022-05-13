@@ -9,10 +9,10 @@ export let divka = {
         Left: 0,
         Body: document.getElementById("hren")
     } //дивка самой игры либо камера если можно так назвать
-export let gravity = 0.001
+export let gravity = 0.0015
 let divos = document.getElementById("cros")
 let fps = document.getElementById("fpska") //дивка фпски
-let mapTileSize = 36 //размер тайла. Все тайлы это квадраты
+export let mapTileSize = 36 //размер тайла. Все тайлы это квадраты
     // let counter = 0
     // let countertime = 0 //for measuring fps
 
@@ -36,7 +36,7 @@ function MapMaking(getlvl = getLevel1) {
 
             if (map[j][i] != 5) { //пихаем тайлы с помощью переводчика и самого шаблона карты с цифрами
                 Maps[i][j] = document.createElement("image")
-                Maps[i][j].setAttribute("style", "position:absolute; top:" + mapTileSize * (j) + "px;left:" + mapTileSize * i + "px; content: url(./assets/sprites/environment/" + transfer[map[j][i]] + ".png) " + "; width:" + mapTileSize + "px; height:" + mapTileSize + "px;")
+                Maps[i][j].setAttribute("style", "position:absolute; top:" + mapTileSize * (j) + "px;left:" + mapTileSize * i + "px; content:url(./assets/sprites/environment/" + transfer[map[j][i]] + ".png)" + "; width:" + mapTileSize + "px; height:" + mapTileSize + "px;")
             } else { // если это облако нужно пихать его остальные части
                 if (clouds[i - 1][j - 1] == undefined) {
                     clouds[i - 1][j - 1] = document.createElement("image")

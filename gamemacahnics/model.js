@@ -1,6 +1,6 @@
-export function newCreature(src, height, width, parent, file, reference) { //срс это имена спрайтов, высота, ширина, парент это куда нужно пихать, файл это в какой папке находится спрайты 
+export function newCreature(src, height, width, parent, file, reference,initialcoordinate=[0,0]) { //срс это имена спрайтов, высота, ширина, парент это куда нужно пихать, файл это в какой папке находится спрайты 
     reference.Body = document.createElement("div") //это основная дивка контейнер спрайтов передвигаем и зазеркалим с помощью него
-    reference.Body.setAttribute("style", "width:" + width + "px; height:" + height + "px;position:absolute;left:0px;top:0px")
+    reference.Body.setAttribute("style", "width:" + width + "px; height:" + height + "px;position:absolute;left:"+initialcoordinate[0]+"px;top:"+initialcoordinate[1]+"px;")
     parent.appendChild(reference.Body)
     reference.Sprites = []
     for (let i in src) {
@@ -9,6 +9,8 @@ export function newCreature(src, height, width, parent, file, reference) { //с�
         reference.Body.appendChild(new1)
         reference.Sprites[i] = new1
     }
+    reference.height=height
+    reference.width=width
     reference.vy = 0
     reference.Sprites[0].style.visibility = "visible"
 }
