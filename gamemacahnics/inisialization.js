@@ -1,20 +1,20 @@
 import { getLevel1, transfer }
-from "../assets/maps/1lvl.js"
+    from "../assets/maps/1lvl.js"
 import { newCreature }
-from "./model.js"
+    from "./model.js"
 
 export let Maps = [] //Карта игры
-    // let PositionView = 0 //Где находитя камера пока не используется
+// let PositionView = 0 //Где находитя камера пока не используется
 export let divka = {
-        Left: 0,
-        Body: document.getElementById("hren")
-    } //дивка самой игры либо камера если можно так назвать
+    Left: 0,
+    Body: document.getElementById("map")
+} //дивка самой игры либо камера если можно так назвать
 export let gravity = 0.0015
-let divos = document.getElementById("cros")
+let divos = document.getElementById("monitor")
 let fps = document.getElementById("fpska") //дивка фпски
 export let mapTileSize = 36 //размер тайла. Все тайлы это квадраты
-    // let counter = 0
-    // let countertime = 0 //for measuring fps
+// let counter = 0
+// let countertime = 0 //for measuring fps
 
 //timeNow = Date.now()//нахер не нужен
 
@@ -22,7 +22,9 @@ export let mapTileSize = 36 //размер тайла. Все тайлы это 
 
 function MapMaking(getlvl = getLevel1) {
     let clouds = []
-    let map = getlvl()
+    let lvl = getlvl()
+    let monsters = lvl[1]
+    let map = lvl[0]
     for (let i = 0; i < map[0].length; i++) { //Array preparation
         Maps[i] = []
         clouds[i] = []
@@ -58,8 +60,8 @@ function MapMaking(getlvl = getLevel1) {
                 clouds[i + 1][j].setAttribute("style", "position:absolute; top:" + mapTileSize * (j) + "px;left:" + mapTileSize * (i + 1) + "px; content: url(./assets/sprites/environment/" + transfer[map[j][i]] + "21.png) " + "; width:" + mapTileSize + "px; height:" + mapTileSize + "px;")
             }
         }
-        console.log(Maps.length)
     }
+    console.log(Maps.length)
 
     for (let i = 0; i < map[0].length; i++) { //injecting to HTML или рисование
         for (let j = 0; j < map.length; j++) {
@@ -70,6 +72,16 @@ function MapMaking(getlvl = getLevel1) {
                 divka.Body.appendChild(clouds[i][j])
             }
         }
+    }
+    for (let i in monsters) {
+        let Mx = { //создание самого игрока
+            Onearth: true,
+            State: 0,
+            Top: monsters[i][1] * mapTileSize,
+            Left: monsters[i][0] * mapTileSize,
+            looksleft: false
+        }
+        newCreature(["monsterFungi1.png", "monsterFungi2.png", "monsterFungi3.png"], 32, 32, divka.Body, "Monster", Mx)
     }
 }
 
@@ -83,5 +95,6 @@ export let Mario = { //создание самого игрока
     looksleft: false
 }
 
-newCreature(["MarioStands.png", "MarioJump.png", "MarioRun1.png", "MarioRun2.png", "MarioRun3.png", "MarioRun4.png", "MarioRun5.png", "MarioRun6.png", "MarioSeats.png", ], 64, 32, divos, "Mario", Mario)
+newCreature(["MarioStands.png", "MarioJump.png", "MarioRun1.png", "MarioRun2.png", "MarioRun3.png", "MarioRun4.png", "MarioRun5.png", "MarioRun6.png", "MarioSeats.png",], 64, 32, divos, "Mario", Mario)
+
 console.log(Mario.Body)
