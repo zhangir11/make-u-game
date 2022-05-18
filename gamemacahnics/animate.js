@@ -73,7 +73,7 @@ function cycle() { //цикл анимаций тут нельзя делать 
         scorebody.innerHTML = score
     }
     tempSec = secundomer.mecansm.GetTime()
-    tempSec = 30000 - tempSec
+    tempSec = 50000 - tempSec
     if (tempSec < 0) {
         gameover()
     }
@@ -188,9 +188,7 @@ function ContinuePaused() {
     } else {
         secundomer.mecansm.Continue()
         timetoVelocity = Date.now()
-        cyclecode = setInterval(() => {
-            foreverEver()
-        }, 16)
+        cyclecode = setInterval(foreverEver, 16)
     }
 }
 
@@ -210,7 +208,7 @@ function foreverEver() { //game function
         bottomline = collidebottom(MonsterZ[i]) //take bottom limit
         if (MonsterZ[i].Left > 0 && MonsterZ[i].Left > 0 && !MonsterZ[i].directionRight) {
             MonsterZ[i].Left -= Math.round((thenow - timetoVelocity) * 0.07) //simple physics. distance=dt*v
-        } else if (MonsterZ[i].Left < mapTileSize * Maps.length - MonsterZ[i].width) {
+        } else {
             MonsterZ[i].Left += Math.round((thenow - timetoVelocity) * 0.07)
         }
         if ((!MonsterZ[i].Onearth) || (MonsterZ[i].vy < 0)) { // calculation for jumping and falling with gravity
@@ -295,6 +293,9 @@ function foreverEver() { //game function
                     leftborder++
                 }
             }
+        } else {
+            gameover()
+            gameoverbody.innerHTML = "Win"
         }
     }
 
