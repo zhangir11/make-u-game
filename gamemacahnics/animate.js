@@ -1,8 +1,8 @@
 'use strict'
 import { NewSecundomer } from "./secundomer.js"
-import { clouds, MonsterZ, MapMaking, mapTileSize, Mario, Maps, divka, gravity }
+import { clouds, MapMaking, mapTileSize, Mario, Maps, divka, gravity }
     from "./inisialization.js"
-import { isLeftDown, isDownDown, isRightDown, isUpDown }
+import { isRestartDown, isPauseDown, isLeftDown, isDownDown, isRightDown, isUpDown }
     from "./control.js"
 let leftborder = 0
 let rightborder = 25
@@ -10,7 +10,13 @@ let secundomer = {
     body: document.getElementById("secundomer"),
     mecansm: NewSecundomer(),
 }
-secundomer.mecansm.Start()
+let MonsterZ = []
+let gameoverbody = document.getElementById("gameover")
+let scorebody = document.getElementById("score")
+let score = 0
+let cyclecode = 0
+let life = 3
+let lifebody = document.getElementById("life")
 
 function throttle(func, ms) {
 
@@ -32,10 +38,6 @@ function throttle(func, ms) {
 
         setTimeout(function () {
             isThrottled = false; // (3)
-            if (savedArgs) {
-                wrapper.apply(savedThis, savedArgs);
-                savedArgs = savedThis = null;
-            }
         }, ms);
     }
 
@@ -67,10 +69,15 @@ let tempTop
 function cycle() { //цикл анимаций тут нельзя делать вычислений. Пока сырой
     if (tempTop && tempTop.style.content == "url(\"./assets/sprites/environment/bonusactive.png\")") {
         tempTop.style.content = "url(./assets/sprites/environment/bonusinactive.png)"
+        score++
+        scorebody.innerHTML = score
     }
     tempSec = secundomer.mecansm.GetTime()
-    tempSec = 300000 - tempSec
-    secundomer.body.innerHTML = ((tempSec / 60000) >> 0) + "m " + ((tempSec / 1000) >> 0) % 60 + "s " + tempSec % 1000 + "ms"
+    tempSec = 30000 - tempSec
+    if (tempSec < 0) {
+        gameover()
+    }
+    secundomer.body.innerHTML = ((tempSec / 60000) >> 0) + "m " + ((tempSec / 1000) >> 0) % 60 + "s"
     if (!Mario.Onearth) {
         Mario.SetSate(Mario, 1, 1)
     } //когда на воздухе марио не меняет позу
@@ -94,10 +101,31 @@ function cycle() { //цикл анимаций тут нельзя делать 
     } else if (Mario.Onearth) {
         Mario.SetSate(Mario, 0, 0)
     }
-    for (i in MonsterZ) {
-        MonsterZ[i].SetState(MonsterZ[i], 0, 1)
-        MonsterZ[i].Body.style.left = MonsterZ[i].Left + "px"
-        MonsterZ[i].Body.style.top = MonsterZ[i].Top + "px"
+    i = 0
+    while (i < MonsterZ.length) {
+        // 
+        if (MonsterZ[i].Left + MonsterZ[i].width > Mario.Left && MonsterZ[i].Left < Mario.Left + Mario.width && MonsterZ[i].Top <= Mario.Top + Mario.height && MonsterZ[i].Top + 12 >= Mario.Top + Mario.height) {
+            Mario.vy = -0.4
+            setState(MonsterZ[i], 2, 2)
+            score++
+            MonsterZ[i] = MonsterZ[0]
+            MonsterZ = MonsterZ.slice(1)
+            scorebody.innerHTML = score
+        } else if (MonsterZ[i].Left + MonsterZ[i].width > Mario.Left && MonsterZ[i].Left < Mario.Left + Mario.width && MonsterZ[i].Top <= Mario.Top + Mario.height && MonsterZ[i].Top + MonsterZ[i].width >= Mario.Top + Mario.height) {
+            life--
+            lifebody.innerHTML = life
+            if (life == 0) {
+                gameover()
+            }
+            Mario.Left = -divka.Left
+            Mario.Top = 0
+            i++
+        } else {
+            MonsterZ[i].SetState(MonsterZ[i], 0, 1)
+            MonsterZ[i].Body.style.left = MonsterZ[i].Left + "px"
+            MonsterZ[i].Body.style.top = MonsterZ[i].Top + "px"
+            i++
+        }
     }
     divka.Body.style.left = divka.Left + "px"
     Mario.Body.style.left = Mario.Left + divka.Left + "px"
@@ -113,13 +141,77 @@ let topline = 0
 let tempn = 0
 let i = 0
 
+function LaunchContinuePaused() {
+    if (isPauseDown) {
+        setTimeout(LaunchContinuePaused, 30)
+    } else {
+        setTimeout(kostyl, 30)
+    }
+}
+
+function kostyl2() {
+    if (!isRestartDown) {
+        setTimeout(kostyl2, 30)
+    } else {
+        restartGame()
+    }
+}
+
+function gameover() {
+    secundomer.mecansm.StopTime()
+    clearInterval(cyclecode)
+    gameoverbody.style.display = "block"
+    kostyl2()
+}
+
+function restartGame() {
+    if (isRestartDown) {
+        setTimeout(restartGame, 30)
+    } else {
+        location.reload()
+    }
+}
+
+function kostyl() {
+    if (isRestartDown) {
+        restartGame()
+    } else if (!isPauseDown) {
+        setTimeout(kostyl, 30)
+    } else {
+        ContinuePaused()
+    }
+}
+
+function ContinuePaused() {
+    if (isPauseDown) {
+        setTimeout(ContinuePaused, 30)
+    } else {
+        secundomer.mecansm.Continue()
+        timetoVelocity = Date.now()
+        cyclecode = setInterval(() => {
+            foreverEver()
+        }, 16)
+    }
+}
+
 function foreverEver() { //game function
+    if (isPauseDown) {
+        clearInterval(cyclecode)
+        secundomer.mecansm.StopTime()
+        LaunchContinuePaused()
+    }
+    if (isRestartDown) {
+        restartGame()
+    }
     thenow = Date.now() //it is t2 or now. Needed for physics
     for (i in MonsterZ) {
         backlimit = collideback(MonsterZ[i])
+        frontlimit = collidefront(MonsterZ[i])
         bottomline = collidebottom(MonsterZ[i]) //take bottom limit
-        if (MonsterZ[i].Left > 0 && MonsterZ[i].Left > 0) {
+        if (MonsterZ[i].Left > 0 && MonsterZ[i].Left > 0 && !MonsterZ[i].directionRight) {
             MonsterZ[i].Left -= Math.round((thenow - timetoVelocity) * 0.07) //simple physics. distance=dt*v
+        } else if (MonsterZ[i].Left < mapTileSize * Maps.length - MonsterZ[i].width) {
+            MonsterZ[i].Left += Math.round((thenow - timetoVelocity) * 0.07)
         }
         if ((!MonsterZ[i].Onearth) || (MonsterZ[i].vy < 0)) { // calculation for jumping and falling with gravity
             tempn = MonsterZ[i].vy //initial velocity
@@ -140,6 +232,11 @@ function foreverEver() { //game function
         }
         if (MonsterZ[i].Left < backlimit) {
             MonsterZ[i].Left = backlimit
+            MonsterZ[i].directionRight = true
+        }
+        if (MonsterZ[i].Left > frontlimit) {
+            MonsterZ[i].directionRight = false
+            MonsterZ[i].Left = frontlimit
         }
     }
     backlimit = collideback(Mario)
@@ -181,7 +278,7 @@ function foreverEver() { //game function
         }
     } else if (isRightDown) {
         //simple physics. distance=dt*v
-        if (Mario.Left < mapTileSize * Maps.length - Mario.width) { //436 середина экрана. Марио движется до этой линий дальше двигается дивка, в конце опять Марио
+        if (Mario.Left < mapTileSize * Maps.length - Mario.width) {
             Mario.Left += Math.round((thenow - timetoVelocity) * 0.17)
             if (divka.Left + Mario.Left > 450 && Mario.Left < mapTileSize * Maps.length - 449) {
                 divka.Left -= Math.round((thenow - timetoVelocity) * 0.17)
@@ -207,6 +304,17 @@ function foreverEver() { //game function
     }
     if (Mario.Left > frontlimit) {
         Mario.Left = frontlimit
+    }
+
+    if (Mario.Top >= mapTileSize * Maps[0].length) {
+        life--
+        lifebody.innerHTML = life
+        if (life == 0) {
+            gameover()
+        }
+        Mario.Left = -divka.Left
+        Mario.Top = 0
+        i++
     }
     timetoVelocity = thenow
     window.requestAnimationFrame(cycle)
@@ -274,12 +382,10 @@ function collidebottom(creature) {
 }
 
 addEventListener('load', () => {
-    MapMaking()
+    MapMaking(MonsterZ)
     Mario.SetSate = throttle(setState, 100)
     for (i in MonsterZ) {
         MonsterZ[i].SetState = throttle(setState, 150)
     }
-    setInterval(() => {
-        foreverEver()
-    }, 16)
+    kostyl()
 })

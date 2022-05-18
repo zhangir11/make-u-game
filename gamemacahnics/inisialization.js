@@ -19,8 +19,7 @@ export let clouds = []
 
 //timeNow = Date.now()//нахер не нужен
 // MapTiling
-export let MonsterZ = []
-export function MapMaking(getlvl = getLevel1) {
+export function MapMaking(MonsterZ,getlvl = getLevel1) {
     newCreature(["MarioStands.png", "MarioJump.png", "MarioRun1.png", "MarioRun2.png", "MarioRun3.png", "MarioRun4.png", "MarioRun5.png", "MarioRun6.png", "MarioSeats.png",], "Mario", divos, "Mario", Mario, 32, 64)
     let lvl = getlvl()
     let monsters = lvl[1]
@@ -88,9 +87,10 @@ export function MapMaking(getlvl = getLevel1) {
             Top: monsters[i][1] * mapTileSize,
             Left: monsters[i][0] * mapTileSize,
             looksleft: false,
-            vy: 0
+            vy: 0,
+            directionRight: false
         }
-        newCreature(["monsterFungi1.png", "monsterFungi2.png", "monsterFungi3.png"], "Monster", divka.Body, "Monster", MonsterZ[i], 32, 32, MonsterZ[i])
+        newCreature(["monsterFungi1.png", "monsterFungi2.png", "monsterFungi3.png"], "Monster", divka.Body, "Monster", MonsterZ[i], 32, 32, monsters[i])
         console.log(MonsterZ[i])
     }
 }
