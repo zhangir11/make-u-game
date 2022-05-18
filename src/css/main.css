@@ -5,6 +5,35 @@
     box-sizing: content-box;
 }
 
+.Mario{
+    position:absolute;
+    width: 32px;
+    height:64px;
+    z-index: 5;
+}
+
+.grid{
+    position:absolute;
+    width:36px;
+    height:36px;
+    z-index:3;
+}
+
+.platform{
+    content:url("../../assets/sprites/environment/platform.png")
+}
+
+.ground{
+    content:url("../../assets/sprites/environment/ground.png")
+}
+
+.Monster{
+    position:absolute;
+    z-index: 4;
+    width:32px;
+    height:32px;
+}
+
 .UI-parent {
     border: solid rgba(210, 87, 30, 0.623) 10px;
     height: 540px;

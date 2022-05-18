@@ -1,3 +1,4 @@
+'use strict'
 export let isUpDown = false
 export let isDownDown = false
 export let isLeftDown = false
